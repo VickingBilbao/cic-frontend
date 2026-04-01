@@ -6,6 +6,8 @@ import { useDemandas, useMonitoramento, useCRM, useFundraising,
          useGOTV, useDiagnostico } from './hooks/useDataHooks.js';
 import useAppStore from './store/useAppStore.js';
 import { config as configApi } from './api/endpoints.js';
+import { useTheme } from './hooks/useTheme.js';
+import SuperAdmin from './SuperAdmin.jsx';
 const LOGO_SRC="data:image/png;base64,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";
 function CICLogo({ size = 36 }) { return <img src={LOGO_SRC} alt="CIC" width={size} height={size} style={{ display:"block",flexShrink:0,objectFit:"contain",imageRendering:"auto" }} />; }
 const g={card:{background:"rgba(255,255,255,0.06)",backdropFilter:"blur(40px) saturate(180%)",WebkitBackdropFilter:"blur(40px) saturate(180%)",border:"1px solid rgba(255,255,255,0.12)",borderRadius:16},surface:{background:"rgba(255,255,255,0.04)",backdropFilter:"blur(24px)",WebkitBackdropFilter:"blur(24px)",border:"1px solid rgba(255,255,255,0.08)",borderRadius:12},sidebar:{background:"rgba(20,20,28,0.65)",backdropFilter:"blur(60px) saturate(200%)",WebkitBackdropFilter:"blur(60px) saturate(200%)",borderRight:"1px solid rgba(255,255,255,0.08)"},input:{background:"rgba(255,255,255,0.06)",border:"1px solid rgba(255,255,255,0.10)",borderRadius:10,color:"#F0EDE8",outline:"none"},red:"#FF2D2D",rg:"rgba(255,45,45,0.18)",cyan:"#00E5FF",cg:"rgba(0,229,255,0.14)",gn:"#34D399",am:"#FBBF24",t1:"#F0EDE8",t2:"#B8B3AB",t3:"#7A756E",t4:"#4A463F"};
@@ -1170,6 +1172,9 @@ const[camp,setCamp]=useState(()=>{try{return JSON.parse(localStorage.getItem('ci
 const[mob,setMob]=useState(window.innerWidth<768);
 const[mobMenu,setMobMenu]=useState(false);
 useEffect(()=>{const h=()=>{setMob(window.innerWidth<768);if(window.innerWidth>=768)setMobMenu(false)};window.addEventListener("resize",h);return()=>window.removeEventListener("resize",h)},[]);
+const { theme, persona, modulesEnabled } = useTheme();
+const MOB_NAV=["dash","ia","estr","agenda"];
+const isSadmin = window.location.pathname==='/sadmin';
 
 const switchPanel=(id)=>{setTransitioning(true);setMobMenu(false);setTimeout(()=>{setAct(id);setTransitioning(false)},200)};
 
@@ -1199,6 +1204,62 @@ const CSS=<style>{`
 @keyframes shimmer{0%{background-position:-200% 0}100%{background-position:200% 0}}
 @keyframes emptyFloat{0%,100%{transform:translateY(0)}50%{transform:translateY(-6px)}}
 *{box-sizing:border-box;margin:0;padding:0;font-family:'Outfit',sans-serif}
+
+/* ── MOBILE-FIRST RESPONSIVE ── */
+@media(max-width:767px){
+  /* Grid overrides: collapse multi-column grids to 1 or 2 cols */
+  [style*="gridTemplateColumns"]{grid-template-columns:1fr !important}
+  [style*="repeat(4"]{grid-template-columns:repeat(2,1fr) !important}
+  [style*="repeat(3"]{grid-template-columns:repeat(2,1fr) !important}
+  [style*="repeat(2"]{grid-template-columns:1fr !important}
+
+  /* KPI stat rows wrap gracefully */
+  .kpi-row{flex-wrap:wrap;gap:8px !important}
+  .kpi-row>*{flex:1 1 calc(50% - 8px);min-width:120px}
+
+  /* Cards: full width, reduced padding */
+  .glass-card{padding:12px !important;border-radius:12px !important}
+
+  /* Horizontal scroll for tables */
+  table{display:block;overflow-x:auto;white-space:nowrap;width:100%}
+
+  /* Typography scale-down */
+  h1,h2{font-size:clamp(14px,4vw,20px) !important}
+  h3{font-size:clamp(12px,3.5vw,16px) !important}
+
+  /* Module header stat blocks */
+  .mod-header{flex-direction:column !important;gap:10px !important;align-items:flex-start !important}
+  .mod-stats{flex-wrap:wrap;gap:6px !important}
+  .mod-stats>*{flex:1 1 calc(50% - 6px);min-width:100px}
+
+  /* Flex rows that should stack on mobile */
+  .mob-stack{flex-direction:column !important;gap:8px !important}
+  .mob-stack>*{width:100% !important;min-width:0 !important}
+
+  /* Search/filter bars */
+  .filter-bar{flex-wrap:wrap !important;gap:6px !important}
+  .filter-bar>input,.filter-bar>select{width:100% !important;box-sizing:border-box}
+
+  /* Charts fill container */
+  .recharts-responsive-container{min-height:160px}
+
+  /* Touch-friendly buttons */
+  button{min-height:40px;min-width:40px}
+
+  /* Tabs: scroll horizontally */
+  .tab-row{overflow-x:auto;-webkit-overflow-scrolling:touch;flex-wrap:nowrap !important;padding-bottom:2px}
+  .tab-row::-webkit-scrollbar{display:none}
+
+  /* Chat: full width input area */
+  .chat-input-row{flex-direction:column;gap:6px}
+  .chat-input-row>input,.chat-input-row>textarea{width:100% !important}
+  .chat-input-row>button{width:100%;justify-content:center}
+}
+
+@media(max-width:480px){
+  [style*="repeat(2"]{grid-template-columns:1fr !important}
+  .mod-stats>*{flex:1 1 100%}
+}
 ::-webkit-scrollbar{width:3px}
 ::-webkit-scrollbar-thumb{background:rgba(255,255,255,.06);border-radius:2px}
 button,input,select,textarea{font-family:inherit}
@@ -1237,10 +1298,19 @@ button:active{transform:translateY(0) scale(.99);transition:all .15s}
 
 </style>;
 
+// ── /sadmin route ─────────────────────────────────────────────────────────
+if(isSadmin){
+  const saToken=localStorage.getItem('cic_token');
+  if(!saToken)return<>{CSS}<GlassBG/><div style={{position:"relative",zIndex:1,minHeight:"100vh",display:"flex",alignItems:"center",justifyContent:"center",flexDirection:"column",gap:8}}><div style={{fontSize:10,color:"rgba(6,182,212,0.7)",fontWeight:700,letterSpacing:"0.1em",marginBottom:8}}>⚡ ADMIN ACCESS</div><LoginConnected onSuccess={()=>window.location.reload()}/></div></>;
+  return<SuperAdmin token={saToken} onLogout={()=>{localStorage.removeItem('cic_token');localStorage.removeItem('cic_user');window.location.href='/'}}/>;
+}
+
 if(scr==="login")return<>{CSS}<GlassBG/><div style={{position:"relative",zIndex:1,minHeight:"100vh",display:"flex",alignItems:"center",justifyContent:"center"}}><LoginConnected onSuccess={()=>setScr("camps")}/></div></>;
 if(scr==="camps")return<>{CSS}<GlassBG/><div style={{position:"relative",zIndex:1,minHeight:"100vh",display:"flex",alignItems:"center",justifyContent:"center",flexDirection:"column"}}><h2 style={{color:"#F0EDE8",fontSize:18,fontWeight:700,marginBottom:16}}>Selecione a campanha</h2><div style={{width:400}}><CampaignSelectorConnected onSelect={c=>{setCamp(c);setScr("app");setShowOnboarding(true)}}/></div></div></>;
 
-const panel=()=>{switch(act){case"dash":return<Dash camp={camp}/>;case"demandas":return<CentralDemandas/>;case"diag":return<Diag/>;case"mon":return<Mon/>;case"crm":return<CRMEleitores/>;case"fund":return<Fundraising/>;case"comm":return<Comunicacao/>;case"vol":return<Voluntarios/>;case"prod":return<Prod/>;case"social":return<SocialPublisher/>;case"agenda":return<AgendaCandidato/>;case"debate":return<SimuladorDebate/>;case"relat":return<Relatorios/>;case"pesq":return<PesquisasSurveys/>;case"gotv":return<GOTV/>;case"mapa":return<MapaEleitoral/>;case"estr":return<Estr/>;case"ia":return<IARealChat/>;case"config":return<ConfigPage/>;default:return<Dash camp={camp}/>}};
+const modOk=(id)=>!modulesEnabled||modulesEnabled.includes(id);
+const ModLock=({id})=>{const m=MODS.find(x=>x.id===id);return(<div style={{display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",height:"60vh",gap:12}}><div style={{fontSize:36,opacity:.3}}>🔒</div><div style={{fontSize:15,fontWeight:700,color:g.t1}}>{m?.label||id}</div><div style={{fontSize:11,color:g.t3,maxWidth:320,textAlign:"center",lineHeight:1.6}}>Este módulo não está incluído no seu plano atual. Entre em contato com o suporte para desbloquear.</div></div>);};
+const panel=()=>{switch(act){case"dash":return<Dash camp={camp}/>;case"demandas":return modOk("demandas")?<CentralDemandas/>:<ModLock id="demandas"/>;case"diag":return modOk("diag")?<Diag/>:<ModLock id="diag"/>;case"mon":return modOk("mon")?<Mon/>:<ModLock id="mon"/>;case"crm":return modOk("crm")?<CRMEleitores/>:<ModLock id="crm"/>;case"fund":return modOk("fund")?<Fundraising/>:<ModLock id="fund"/>;case"comm":return modOk("comm")?<Comunicacao/>:<ModLock id="comm"/>;case"vol":return modOk("vol")?<Voluntarios/>:<ModLock id="vol"/>;case"prod":return modOk("prod")?<Prod/>:<ModLock id="prod"/>;case"social":return modOk("social")?<SocialPublisher/>:<ModLock id="social"/>;case"agenda":return modOk("agenda")?<AgendaCandidato/>:<ModLock id="agenda"/>;case"debate":return modOk("debate")?<SimuladorDebate/>:<ModLock id="debate"/>;case"relat":return modOk("relat")?<Relatorios/>:<ModLock id="relat"/>;case"pesq":return modOk("pesq")?<PesquisasSurveys/>:<ModLock id="pesq"/>;case"gotv":return modOk("gotv")?<GOTV/>:<ModLock id="gotv"/>;case"mapa":return modOk("mapa")?<MapaEleitoral/>:<ModLock id="mapa"/>;case"estr":return modOk("estr")?<Estr/>:<ModLock id="estr"/>;case"ia":return modOk("ia")?<IARealChat/>:<ModLock id="ia"/>;case"config":return<ConfigPage/>;default:return<Dash camp={camp}/>}};
 
 if(fullscreen)return<div style={{height:"100vh",width:"100vw",overflow:"auto",padding:"24px 32px",color:g.t1,position:"relative"}}>{CSS}<GlassBG/><div style={{position:"relative",zIndex:1}}><div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:20}}><div style={{display:"flex",alignItems:"center",gap:10}}><CICLogo size={28}/><span style={{fontSize:16,fontWeight:700,color:g.t1}}>{camp?.name}</span><Badge color={camp?.color||g.red}>{camp?.cargo}</Badge></div><button onClick={()=>setFullscreen(false)} style={{padding:"6px 14px",borderRadius:8,border:`1px solid rgba(255,255,255,0.1)`,background:"rgba(255,255,255,0.04)",color:g.t2,fontSize:10,cursor:"pointer"}}>✕ Sair do modo apresentação</button></div>{panel()}</div></div>;
 
@@ -1248,16 +1318,8 @@ return(
 <div style={{display:"flex",height:"100vh",width:"100vw",color:g.t1,overflow:"hidden",position:"relative"}}>
 {CSS}<GlassBG/>
 
-{/* MOBILE HAMBURGER */}
-{mob&&<div onClick={()=>setMobMenu(!mobMenu)} style={{position:"fixed",top:12,left:12,zIndex:50,width:40,height:40,borderRadius:10,background:"rgba(11,11,20,0.85)",backdropFilter:"blur(10px)",border:"1px solid rgba(255,255,255,0.08)",display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",gap:4,cursor:"pointer",boxShadow:"0 4px 16px rgba(0,0,0,0.4)"}}>
-<span style={{width:16,height:2,background:mobMenu?g.red:"#fff",transition:"all .3s",transform:mobMenu?"rotate(45deg) translate(2px,2px)":"none"}}/>
-<span style={{width:16,height:2,background:"#fff",transition:"all .3s",opacity:mobMenu?0:1}}/>
-<span style={{width:16,height:2,background:mobMenu?g.red:"#fff",transition:"all .3s",transform:mobMenu?"rotate(-45deg) translate(2px,-2px)":"none"}}/>
-</div>}
-{/* MOBILE OVERLAY */}
-{mob&&mobMenu&&<div onClick={()=>setMobMenu(false)} style={{position:"fixed",inset:0,background:"rgba(0,0,0,0.6)",backdropFilter:"blur(4px)",zIndex:3,transition:"opacity .3s"}}/>}
-{/* SIDEBAR */}
-<div style={{...g.sidebar,width:mob?(mobMenu?240:0):col?52:190,minWidth:mob?(mobMenu?240:0):col?52:190,height:"100vh",display:"flex",flexDirection:"column",transition:"all .3s ease",zIndex:mob?40:2,position:mob?"fixed":"relative",left:0,top:0,overflow:mob&&!mobMenu?"hidden":"visible",boxShadow:mob&&mobMenu?"8px 0 32px rgba(0,0,0,0.5)":"none"}}>
+{/* SIDEBAR — hidden on mobile, uses bottom nav instead */}
+<div style={{...g.sidebar,width:mob?0:col?52:190,minWidth:mob?0:col?52:190,height:"100vh",display:mob?"none":"flex",flexDirection:"column",transition:"all .3s ease",zIndex:2,overflow:"hidden"}}>
 <div onClick={()=>setCol(!col)} style={{padding:col?"12px 8px":"12px 14px",borderBottom:"1px solid rgba(255,255,255,0.06)",display:"flex",alignItems:"center",gap:8,cursor:"pointer"}}>
 <div style={{filter:"drop-shadow(0 2px 8px rgba(255,45,45,0.2))"}}><CICLogo size={col?28:30}/></div>
 {!col&&<span style={{fontSize:12,fontWeight:700,color:g.t1}}>CIC <span style={{fontSize:9,color:g.t4,fontWeight:400}}>v4</span></span>}
@@ -1294,8 +1356,8 @@ Apresentação
 </div>
 
 {/* MAIN CONTENT */}
-<div style={{flex:1,overflow:"auto",padding:mob?"12px 10px":"16px 20px",position:"relative",zIndex:1}}>
-<div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:16,paddingLeft:mob?36:0}}>
+<div style={{flex:1,overflow:"auto",padding:mob?"12px 10px 80px":"16px 20px",position:"relative",zIndex:1}}>
+<div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:16}}>
 <div style={{display:"flex",alignItems:"center",gap:8}}>
 <div style={{fontSize:10,color:g.t4}}>{new Date().toLocaleDateString("pt-BR",{weekday:"long",day:"numeric",month:"long",year:"numeric"})}</div>
 </div>
@@ -1313,5 +1375,46 @@ Apresentação
 </div>
 <NotifPanel show={showNotif} onClose={()=>setShowNotif(false)}/>
 {showOnboarding&&<Onboarding onFinish={()=>setShowOnboarding(false)}/>}
+
+{/* MOBILE "MAIS" MODULE SHEET */}
+{mob&&mobMenu&&<div onClick={()=>setMobMenu(false)} style={{position:"fixed",inset:0,zIndex:45,background:"rgba(0,0,0,0.55)",backdropFilter:"blur(4px)"}}>
+<div onClick={e=>e.stopPropagation()} style={{position:"absolute",bottom:64,left:0,right:0,background:"rgba(10,10,20,0.97)",backdropFilter:"blur(30px)",borderTop:"1px solid rgba(255,255,255,0.1)",padding:"16px 12px",maxHeight:"65vh",overflowY:"auto"}}>
+<div style={{fontSize:9,color:g.t4,fontWeight:600,letterSpacing:"0.08em",textTransform:"uppercase",marginBottom:10,paddingLeft:4}}>Todos os módulos</div>
+<div style={{display:"grid",gridTemplateColumns:"repeat(3,1fr)",gap:6}}>
+{MODS.filter(m=>!MOB_NAV.includes(m.id)).map(m=>(
+<button key={m.id} onClick={()=>{switchPanel(m.id);setMobMenu(false)}} style={{display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",gap:5,padding:"12px 6px",borderRadius:10,border:`1px solid ${act===m.id?"rgba(0,229,255,0.3)":"rgba(255,255,255,0.07)"}`,background:act===m.id?"rgba(0,229,255,0.08)":"rgba(255,255,255,0.03)",color:act===m.id?g.cyan:g.t2,cursor:"pointer",fontSize:9,fontWeight:act===m.id?600:400,textAlign:"center",lineHeight:1.3}}>
+<span style={{display:"flex",alignItems:"center",justifyContent:"center",opacity:0.85}}>{icons[m.id]||<span style={{fontSize:13}}>{m.ic}</span>}</span>
+{m.label}
+</button>
+))}
+</div>
+{camp&&<div onClick={()=>{setMobMenu(false);setScr("camps")}} style={{marginTop:12,padding:"10px",borderRadius:8,background:"rgba(255,45,45,0.07)",border:"1px solid rgba(255,45,45,0.15)",display:"flex",alignItems:"center",justifyContent:"space-between",cursor:"pointer"}}>
+<div><div style={{fontSize:10,fontWeight:600,color:g.t1}}>{camp.name}</div><div style={{fontSize:8,color:g.t3}}>{camp.cargo}</div></div>
+<span style={{fontSize:9,color:g.red}}>Trocar →</span>
+</div>}
+</div>
+</div>}
+
+{/* MOBILE BOTTOM NAVIGATION */}
+{mob&&<nav style={{position:"fixed",bottom:0,left:0,right:0,zIndex:40,background:"rgba(8,8,18,0.94)",backdropFilter:"blur(24px) saturate(180%)",WebkitBackdropFilter:"blur(24px) saturate(180%)",borderTop:"1px solid rgba(255,255,255,0.08)",display:"flex",alignItems:"stretch",height:60,paddingBottom:"env(safe-area-inset-bottom,0px)"}}>
+{[
+{id:"dash",label:"Dashboard",icon:icons.dash},
+{id:"ia",label:"IA",icon:icons.ia},
+{id:"estr",label:"Estratégia",icon:icons.estr},
+{id:"agenda",label:"Agenda",icon:icons.agenda},
+].map(t=>(
+<button key={t.id} onClick={()=>{switchPanel(t.id);setMobMenu(false)}} style={{flex:1,display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",gap:3,border:"none",background:"transparent",color:act===t.id&&!mobMenu?g.cyan:g.t4,cursor:"pointer",fontSize:8,fontWeight:act===t.id&&!mobMenu?600:400,padding:"6px 2px",position:"relative",minHeight:44,WebkitTapHighlightColor:"transparent"}}>
+{act===t.id&&!mobMenu&&<div style={{position:"absolute",top:0,left:"50%",transform:"translateX(-50%)",width:20,height:2,borderRadius:2,background:g.cyan,boxShadow:`0 0 8px ${g.cyan}80`}}/>}
+<span style={{display:"flex",alignItems:"center",justifyContent:"center"}}>{t.icon}</span>
+{t.label}
+</button>
+))}
+<button onClick={()=>setMobMenu(!mobMenu)} style={{flex:1,display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",gap:3,border:"none",background:"transparent",color:mobMenu||(!MOB_NAV.includes(act))?g.cyan:g.t4,cursor:"pointer",fontSize:8,fontWeight:600,padding:"6px 2px",position:"relative",minHeight:44,WebkitTapHighlightColor:"transparent"}}>
+{(mobMenu||!MOB_NAV.includes(act))&&<div style={{position:"absolute",top:0,left:"50%",transform:"translateX(-50%)",width:20,height:2,borderRadius:2,background:g.cyan,boxShadow:`0 0 8px ${g.cyan}80`}}/>}
+<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><circle cx="5" cy="5" r="1.5"/><circle cx="12" cy="5" r="1.5"/><circle cx="19" cy="5" r="1.5"/><circle cx="5" cy="12" r="1.5"/><circle cx="12" cy="12" r="1.5"/><circle cx="19" cy="12" r="1.5"/><circle cx="5" cy="19" r="1.5"/><circle cx="12" cy="19" r="1.5"/><circle cx="19" cy="19" r="1.5"/></svg>
+Mais
+</button>
+</nav>}
+
 </div>
 );}
