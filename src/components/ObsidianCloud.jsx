@@ -62,7 +62,8 @@ const ui = {
 
 export default function ObsidianCloud() {
   const { nodes, edges, meta, loading, error, refetch } = useObsidian()
-  const cid = useAppStore(s => s.currentCampaign?.id)
+  const cid  = useAppStore(s => s.currentCampaign?.id)
+  const user = useAppStore(s => s.user)
 
   const svgRef  = useRef(null)
   const simRef  = useRef(null)
@@ -89,7 +90,12 @@ export default function ObsidianCloud() {
     d3.select(el).selectAll('*').remove()
     if (simRef.current) simRef.current.stop()
 
-    const simNodes = nodes.map(n => ({ ...n }))
+    // Hub central = nome do marketeiro, não o nome da campanha
+    const marketerName = user?.name || 'Rede Neural'
+    const simNodes = nodes.map(n => ({
+      ...n,
+      label: n.type === 'campanha' ? marketerName : n.label,
+    }))
     const idSet    = new Set(simNodes.map(n => n.id))
     const simEdges = edges
       .filter(e => idSet.has(e.source) && idSet.has(e.target))
@@ -214,7 +220,7 @@ export default function ObsidianCloud() {
     simRef.current = sim
 
     return () => { sim.stop(); d3.select(el).on('.zoom', null) }
-  }, [nodes, edges])
+  }, [nodes, edges, user])
 
   // ── Atualiza seleção via D3 (sem re-render React) ──────────────────────
   useEffect(() => {
