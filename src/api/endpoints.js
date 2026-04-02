@@ -173,5 +173,5 @@ export const avatar = {
 // ── Obsidian Thought Cloud ─────────────────────────────────────
 export const obsidian = {
   graph:   (id = cid()) => api.get(`/campaigns/${id}/obsidian/graph`),
-  addNote: (id, body)   => api.post(`/campaigns/${id}/obsidian/notes`, body),
+  addNote: (id, body)   => api.post(`/campaigns/${id}/obsidian/nota`, body),
 }
