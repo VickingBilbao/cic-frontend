@@ -168,11 +168,29 @@ function Dashboard({ api, onNav }) {
 function OrgList({ api, onEdit, onNew }) {
   const [orgs, setOrgs] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [impersonating, setImpersonating] = useState(null);
 
   const load = () => {
     api.get('/sadmin/orgs').then(setOrgs).catch(console.error).finally(()=>setLoading(false));
   };
   useEffect(load, []);
+
+  const handleImpersonate = async (e, org) => {
+    e.stopPropagation();
+    setImpersonating(org.id);
+    try {
+      const res = await api.post(`/sadmin/orgs/${org.id}/impersonate`);
+      if (res.magic_link) {
+        window.open(res.magic_link, '_blank');
+      } else {
+        alert('Não foi possível gerar o link de acesso.');
+      }
+    } catch(err) {
+      alert('Erro: ' + err.message);
+    } finally {
+      setImpersonating(null);
+    }
+  };
 
   return (
     <div>
@@ -229,6 +247,16 @@ function OrgList({ api, onEdit, onNew }) {
                   {(org.modules_enabled||[]).length} módulos
                 </div>
                 {org.has_api_key&&<Chip c={g.gn}>API ✓</Chip>}
+                <button
+                  onClick={e=>handleImpersonate(e,org)}
+                  disabled={impersonating===org.id}
+                  style={{padding:'5px 12px',borderRadius:8,border:'none',
+                    background:'rgba(139,92,246,0.15)',color:'#a78bfa',
+                    fontSize:9,fontWeight:700,cursor:'pointer',
+                    opacity:impersonating===org.id?0.5:1,
+                    whiteSpace:'nowrap'}}>
+                  {impersonating===org.id ? '...' : '↗ Acessar'}
+                </button>
               </div>
             </div>
           ))}
