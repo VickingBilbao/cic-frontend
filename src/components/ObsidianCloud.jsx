@@ -8,6 +8,12 @@ import { useObsidian } from '../hooks/useDataHooks.js'
 import useAppStore from '../store/useAppStore.js'
 import { obsidian as obsidianApi } from '../api/endpoints.js'
 
+// Pulso animado para o botão de seed
+const PULSE_KF = `@keyframes cidPulse { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:.7;transform:scale(.97)} }`
+if (!document.getElementById('cid-pulse-kf')) {
+  const s = document.createElement('style'); s.id='cid-pulse-kf'; s.textContent=PULSE_KF; document.head.appendChild(s)
+}
+
 const g = {
   card: { background:'rgba(255,255,255,0.06)', backdropFilter:'blur(40px) saturate(180%)', WebkitBackdropFilter:'blur(40px) saturate(180%)', border:'1px solid rgba(255,255,255,0.12)', borderRadius:16 },
   t1:'#F0EDE8', t2:'#B8B3AB', t3:'#7A756E', t4:'#4A463F',
@@ -37,6 +43,8 @@ export default function ObsidianCloud() {
   const [showNote, setShowNote] = useState(false)
   const [noteText, setNoteText] = useState('')
   const [noteTags, setNoteTags] = useState('')
+  const [seeding, setSeeding] = useState(false)
+  const [seedMsg, setSeedMsg] = useState(null)
   const cid = useAppStore(s => s.currentCampaign?.id)
 
   useEffect(() => {
@@ -148,6 +156,26 @@ export default function ObsidianCloud() {
     } catch(err) { console.error(err) }
   }
 
+  const triggerSeedIA = async () => {
+    if (!cid || seeding) return
+    setSeeding(true)
+    setSeedMsg({ type:'info', text:'Gerando base de conhecimento com IA… isso pode levar 30–60 segundos.' })
+    try {
+      const res = await obsidianApi.seedIA(cid)
+      const data = res.data ?? res
+      if (data.status === 'already_seeded') {
+        setSeedMsg({ type:'warn', text:'Esta campanha já possui uma base de conhecimento gerada.' })
+      } else {
+        setSeedMsg({ type:'ok', text:'Base IA iniciada! Recarregando o grafo em alguns segundos…' })
+        setTimeout(() => { refetch(); setSeedMsg(null) }, 6000)
+      }
+    } catch(err) {
+      setSeedMsg({ type:'err', text: err?.response?.data?.error || err.message || 'Erro ao gerar base IA.' })
+    } finally {
+      setSeeding(false)
+    }
+  }
+
   if (loading) return (
     <div style={{display:'flex',alignItems:'center',justifyContent:'center',height:'60vh',flexDirection:'column',gap:12}}>
       <div style={{fontSize:28}}>⬡</div>
@@ -156,13 +184,26 @@ export default function ObsidianCloud() {
   )
 
   if (!nodes.length) return (
-    <div style={{display:'flex',alignItems:'center',justifyContent:'center',height:'60vh',flexDirection:'column',gap:12}}>
-      <div style={{fontSize:36}}>🧠</div>
-      <div style={{fontSize:13,color:g.t2,fontWeight:600}}>Nuvem vazia</div>
-      <div style={{fontSize:11,color:g.t3,textAlign:'center',maxWidth:300,lineHeight:1.6}}>
-        {error||'A nuvem de conhecimento está vazia. Adicione demandas, decisões e monitoramento para ver as conexões.'}
+    <div style={{display:'flex',alignItems:'center',justifyContent:'center',height:'60vh',flexDirection:'column',gap:14}}>
+      <div style={{fontSize:48}}>🧠</div>
+      <div style={{fontSize:15,color:g.t2,fontWeight:700}}>Nuvem de Pensamento vazia</div>
+      <div style={{fontSize:11,color:g.t3,textAlign:'center',maxWidth:340,lineHeight:1.7}}>
+        {error||'A base de conhecimento estratégico está vazia. Use IA para gerar automaticamente SWOT, segmentos, decisões e notas — ou adicione dados manualmente.'}
       </div>
-      <button onClick={refetch} style={{padding:'6px 16px',borderRadius:8,background:'rgba(0,229,255,0.1)',border:'1px solid rgba(0,229,255,0.2)',color:g.cyan,fontSize:10,cursor:'pointer'}}>Recarregar</button>
+      {seedMsg&&(
+        <div style={{padding:'8px 16px',borderRadius:10,fontSize:10,fontWeight:500,
+          background:seedMsg.type==='ok'?'rgba(52,211,153,0.12)':seedMsg.type==='err'?'rgba(255,45,45,0.12)':'rgba(0,229,255,0.10)',
+          border:`1px solid ${seedMsg.type==='ok'?g.gn:seedMsg.type==='err'?g.red:g.cyan}30`,
+          color:seedMsg.type==='ok'?g.gn:seedMsg.type==='err'?g.red:g.cyan,maxWidth:340,textAlign:'center'}}>
+          {seedMsg.text}
+        </div>
+      )}
+      <div style={{display:'flex',gap:10,marginTop:4}}>
+        <button onClick={triggerSeedIA} disabled={seeding} style={{padding:'9px 22px',borderRadius:10,fontSize:11,cursor:seeding?'not-allowed':'pointer',background:seeding?'rgba(124,58,237,0.15)':`linear-gradient(135deg,#7c3aed,#4f46e5)`,border:seeding?'1px solid rgba(124,58,237,0.3)':'none',color:'#fff',fontWeight:700,opacity:seeding?.7:1,animation:seeding?'cidPulse 1.4s infinite':undefined,boxShadow:seeding?'none':'0 0 24px rgba(124,58,237,0.4)'}}>
+          {seeding?'⟳ Gerando base de conhecimento…':'✦ Gerar Base IA'}
+        </button>
+        <button onClick={refetch} style={{padding:'9px 16px',borderRadius:10,background:'rgba(0,229,255,0.08)',border:'1px solid rgba(0,229,255,0.2)',color:g.cyan,fontSize:11,cursor:'pointer'}}>Recarregar</button>
+      </div>
     </div>
   )
 
@@ -184,8 +225,21 @@ export default function ObsidianCloud() {
             </button>
           ))}
           <button onClick={()=>setShowNote(true)} style={{padding:'4px 12px',borderRadius:8,fontSize:9,cursor:'pointer',background:`linear-gradient(135deg,${g.red},#CC1E1E)`,border:'none',color:'#fff',fontWeight:600}}>+ Nota</button>
+          <button onClick={triggerSeedIA} disabled={seeding} style={{padding:'4px 12px',borderRadius:8,fontSize:9,cursor:seeding?'not-allowed':'pointer',background:seeding?'rgba(251,191,36,0.12)':`linear-gradient(135deg,#7c3aed,#4f46e5)`,border:seeding?'1px solid rgba(251,191,36,0.3)':'none',color:seeding?g.am:'#fff',fontWeight:600,opacity:seeding?.75:1,animation:seeding?'cidPulse 1.4s infinite':undefined}}>
+            {seeding?'⟳ Gerando…':'✦ Gerar Base IA'}
+          </button>
         </div>
       </div>
+      {seedMsg&&(
+        <div style={{padding:'8px 14px',borderRadius:10,fontSize:10,fontWeight:500,
+          background:seedMsg.type==='ok'?'rgba(52,211,153,0.12)':seedMsg.type==='err'?'rgba(255,45,45,0.12)':seedMsg.type==='warn'?'rgba(251,191,36,0.12)':'rgba(0,229,255,0.10)',
+          border:`1px solid ${seedMsg.type==='ok'?g.gn:seedMsg.type==='err'?g.red:seedMsg.type==='warn'?g.am:g.cyan}30`,
+          color:seedMsg.type==='ok'?g.gn:seedMsg.type==='err'?g.red:seedMsg.type==='warn'?g.am:g.cyan,
+          display:'flex',alignItems:'center',justifyContent:'space-between',gap:8}}>
+          <span>{seedMsg.text}</span>
+          <button onClick={()=>setSeedMsg(null)} style={{background:'none',border:'none',color:'inherit',cursor:'pointer',fontSize:12,opacity:.6,padding:'0 2px'}}>✕</button>
+        </div>
+      )}
 
       <div style={{flex:1,display:'flex',gap:10,minHeight:0}}>
         <div style={{flex:1,...g.card,overflow:'hidden',position:'relative',cursor:'grab'}}>
