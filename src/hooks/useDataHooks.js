@@ -7,7 +7,7 @@
 import { useState, useEffect, useCallback } from 'react'
 import { demandas, crm, monitoramento, fundraising, producao,
          agenda, voluntarios, debate, estrategia, gotv,
-         social, diagnostico, ia as iaApi } from '../api/endpoints.js'
+         social, diagnostico, ia as iaApi, obsidian as obsidianApi } from '../api/endpoints.js'
 import useAppStore from '../store/useAppStore.js'
 
 // ── Helper base ───────────────────────────────────────────────
@@ -269,4 +269,14 @@ export function useNotificacoes() {
   }
 
   return { notificacoes: notifs, loading, marcarLida, total: notifs.length }
+}
+
+export function useObsidian() {
+  const { data, loading, error, refetch } = useQuery(() => obsidianApi.graph())
+  return {
+    nodes: data?.nodes || [],
+    edges: data?.edges || [],
+    meta:  data?.meta  || {},
+    loading, error, refetch,
+  }
 }
