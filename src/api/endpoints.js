@@ -169,3 +169,9 @@ export const avatar = {
   gerar:   (campaign_id, script, avatar_id) => api.post('/avatar/generate', { campaign_id, script, avatar_id }),
   status:  (jobId) => api.get(`/avatar/status/${jobId}`)
 }
+
+// ── Obsidian Thought Cloud ─────────────────────────────────────
+export const obsidian = {
+  graph:   (id = cid()) => api.get(`/campaigns/${id}/obsidian/graph`),
+  addNote: (id, body)   => api.post(`/campaigns/${id}/obsidian/notes`, body),
+}
